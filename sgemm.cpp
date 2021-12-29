@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include <stdio.h>
 #include <hip/hip_runtime.h>
 
-#define DBG_CHECK_STEP (1)
+#define DBG_CHECK_STEP (31)
 #define BLOCK_SIZE (16)
 
 #define CHECK(cmd) \
@@ -589,6 +589,7 @@ int main(int argc, char *argv[])
     CHECK (hipEventElapsedTime(&mS, start, stop));
     
     printf ("info: launch cost %f ms\n", mS);
+    printf ("info: performance is %f TFLOPs\n", (float)M / 1000.0f * (float)N / 1000.0f *(float)K * 2.0f / 1000.0f / mS);
     
     printf ("info: copy Device2Host\n");
     //CHECK ( hipMemcpy(C_h, C_d, Cbytes, hipMemcpyDeviceToHost));
@@ -603,7 +604,7 @@ int main(int argc, char *argv[])
         bool b_error = false;
         for (size_t j=0; j<M; j+=DBG_CHECK_STEP){
             //printf("[%u,%u] gold = %f, result = %f\n",i,j,C_Gold[i*N+j],C_h[i*N+j]);
-            if(abs(C_h[i*LDC + j] - C_Gold[i*LDC + j]) > (0.005*abs(C_h[i*LDC + j]))){
+            if(abs(C_h[i*LDC + j] - C_Gold[i*LDC + j]) > (0.005*abs(C_h[i*LDC + j]))) {
                 printf("[%zu,%zu] mismatch, gold = %f, result = %f\n",j,i,C_Gold[i*LDC + j],C_h[i*LDC + j]);
                 b_error = true;
                 break;
@@ -644,6 +645,7 @@ int main(int argc, char *argv[])
     CHECK (hipEventElapsedTime(&mS, start, stop));
     
     printf ("info: launch with shared memory cost %f ms\n", mS);
+    printf ("info: performance is %f TFLOPs\n", (float)M / 1000.0f * (float)N / 1000.0f *(float)K * 2.0f / 1000.0f / mS);
     
     CHECK ( hipMemcpy2DAsync(C_h, LDC * sizeof(float), C_d, M * sizeof(float), M * sizeof(float) ,N, hipMemcpyDeviceToHost, stream));
     CHECK (hipStreamSynchronize(stream));
